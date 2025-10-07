@@ -48,14 +48,3 @@ func (d *DockerManager) Restart() error {
 	}
 	return nil
 }
-
-// Logs tails logs from the OpenMRS containers.
-func (d *DockerManager) Logs() (string, error) {
-	fmt.Println("📜 Streaming OpenMRS logs (press Ctrl+C to stop)...")
-	cmd := exec.Command("bash", "-c", "docker compose logs -f --tail=50")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("failed to get logs: %v", err)
-	}
-	return string(output), nil
-}

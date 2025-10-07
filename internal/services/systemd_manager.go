@@ -40,11 +40,3 @@ func (s *SystemdManager) Status() (string, error) {
 	}
 	return fmt.Sprintf("Tomcat9: %s", string(out)), nil
 }
-
-func (s *SystemdManager) Logs() (string, error) {
-	out, err := exec.Command("sudo", "journalctl", "-u", "tomcat9", "--no-pager", "-n", "20").CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("failed to get logs: %v", err)
-	}
-	return string(out), nil
-}
