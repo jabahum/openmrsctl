@@ -1,0 +1,51 @@
+name: Release openmrsctl
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # e.g., v1.0.0, v1.1.2
+
+jobs:
+  build-and-release:
+    name: Build and Release Binaries
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧰 Checkout source
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: 📦 Install dependencies
+        run: go mod tidy
+
+      - name: 🧪 Run tests
+        run: go test ./... -v
+
+      - name: 🔨 Build binaries for multiple platforms
+        run: |
+          mkdir -p dist
+          platforms=("linux/amd64" "linux/arm64" "darwin/amd64" "darwin/arm64" "windows/amd64")
+          VERSION=${GITHUB_REF#refs/tags/}
+          COMMIT=$(git rev-parse --short HEAD)
+          for platform in "${platforms[@]}"; do
+            GOOS=${platform%/*}
+            GOARCH=${platform#*/}
+            output_name="openmrsctl-${GOOS}-${GOARCH}"
+            if [ "$GOOS" = "windows" ]; then
+              output_name="${output_name}.exe"
+            fi
+            echo "🔧 Building for $GOOS/$GOARCH..."
+            CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -ldflags="-X 'openmrsctl/pkg/version.Version=$VERSION' -X 'openmrsctl/pkg/version.Commit=$COMMIT' -s -w" -o dist/$output_name ./main.go
+          done
+
+      - name: 📤 Upload binaries to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
