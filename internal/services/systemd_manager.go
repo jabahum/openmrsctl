@@ -48,22 +48,3 @@ func (s *SystemdManager) Logs() (string, error) {
 	}
 	return string(out), nil
 }
-
-func (s *SystemdManager) Backup(file string) error {
-	cmd := exec.Command("bash", "-c", fmt.Sprintf(`
-		mkdir -p $(dirname %s) &&
-		mysqldump -u root -p openmrs > /tmp/openmrs.sql &&
-		tar -czf %s /tmp/openmrs.sql /var/lib/tomcat9/webapps/openmrs &&
-		rm /tmp/openmrs.sql
-	`, file))
-	return cmd.Run()
-}
-
-func (s *SystemdManager) Restore(file string) error {
-	cmd := exec.Command("bash", "-c", fmt.Sprintf(`
-		tar -xzf %s -C /tmp &&
-		mysql -u root -p openmrs < /tmp/openmrs.sql &&
-		cp -r /tmp/openmrs /var/lib/tomcat9/webapps/
-	`, file))
-	return cmd.Run()
-}

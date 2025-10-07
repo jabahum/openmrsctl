@@ -59,23 +59,3 @@ func (d *DockerManager) Logs() (string, error) {
 	}
 	return string(output), nil
 }
-
-func (d *DockerManager) Backup(file string) error {
-	cmd := exec.Command("bash", "-c", fmt.Sprintf(`
-		mkdir -p $(dirname %s) &&
-		docker exec mysql mysqldump -uroot -p$MYSQL_ROOT_PASSWORD openmrs > /tmp/openmrs.sql &&
-		docker cp mysql:/tmp/openmrs.sql . &&
-		tar -czf %s openmrs.sql &&
-		rm openmrs.sql
-	`, file))
-	return cmd.Run()
-}
-
-func (d *DockerManager) Restore(file string) error {
-	cmd := exec.Command("bash", "-c", fmt.Sprintf(`
-		tar -xzf %s -C /tmp &&
-		docker cp /tmp/openmrs.sql mysql:/tmp/openmrs.sql &&
-		docker exec mysql mysql -uroot -p$MYSQL_ROOT_PASSWORD openmrs < /tmp/openmrs.sql
-	`, file))
-	return cmd.Run()
-}

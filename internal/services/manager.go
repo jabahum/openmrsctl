@@ -9,8 +9,6 @@ type ServiceManager interface {
 	Restart() error
 	Status() (string, error)
 	Logs() (string, error)
-	Backup(file string) error
-	Restore(file string) error
 }
 
 func GetManager() ServiceManager {
